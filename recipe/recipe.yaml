@@ -1,0 +1,66 @@
+schema_version: 1
+
+context:
+  version: "4.2.9"
+
+package:
+  name: jasper
+  version: ${{ version }}
+
+source:
+  url: https://github.com/jasper-software/jasper/releases/download/version-${{ version }}/jasper-${{ version }}.tar.gz
+  sha256: f71cf643937a5fcaedcfeb30a22ba406912948ad4413148214df280afc425454
+
+build:
+  number: 2
+  dynamic_linking:
+    missing_dso_allowlist:
+      - if: osx
+        then: /System/Library/Frameworks/GLUT.framework/Versions/A/GLUT
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib("c") }}
+    - cmake
+    - make
+    - if: win
+      then: ninja
+  host:
+    - libjpeg-turbo
+    - if: linux
+      then: libglu
+    - if: linux or win
+      then: freeglut
+    - if: linux
+      then: libgl-devel
+    - if: linux
+      then: expat
+  run:
+    - libjpeg-turbo
+    - if: linux
+      then: ${{ pin_compatible('libglu') }}
+    - if: linux or win
+      then: ${{ pin_compatible('freeglut') }}
+  run_exports:
+    - ${{ pin_subpackage('jasper') }}
+
+tests:
+  - script:
+      - if: win
+        then: if not exist %LIBRARY_BIN%\\jasper.dll exit 1
+      - jasper --version
+
+about:
+  license: JasPer-2.0
+  license_file: LICENSE.txt
+  summary: A reference implementation of the codec specified in the JPEG-2000 Part-1 standard.
+  homepage: http://www.ece.uvic.ca/~frodo/jasper/
+
+extra:
+  recipe-maintainers:
+    - akrherz
+    - jakirkham
+    - jhamman
+    - ocefpaf
+    - seanyen
